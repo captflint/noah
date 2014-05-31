@@ -22,6 +22,7 @@ for char in webster:
         word += char
     currentchar += 1
     if currentchar % 10000 == 0:
-        print(currentchar / len(webster), len(concordance), len(deduplist))
+        print(currentchar / len(webster), len(concordance), len(deduplist), concordance[-1][0])
 concordance.sort()
-print(concordance)
+with open('index.txt', 'wt') as out:
+    out.write(str(concordance))
