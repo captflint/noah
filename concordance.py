@@ -3,26 +3,20 @@ with lzma.open('webster.txt.xz', 'rt') as w:
     webster = w.read()
 concordance = []
 deduplist = []
-word = ''
+line = ''
 currentchar = 0
+lastnewline = 0
 for char in webster:
-    if char in '., \n':
-        if len(word) == 0:
-            continue
-        else:
-            if word.upper() not in deduplist:
-                wordindex = webster.find('\n' + word.upper() + '\n')
-                if wordindex >= 0:
-                    concordance.append((word.upper(), wordindex))
-                    deduplist.append(word.upper())
-                else:
-                    deduplist.append(word.upper())
-            word = ''
+    if char == '\n':
+        if line.isupper() and line not in deduplist:
+            concordance.append((lastnewline, line))
+            deduplist.append(line)
+        lastnewline = currentchar
+        line = ''
     else:
-        word += char
+        line += char
     currentchar += 1
-    if currentchar % 10000 == 0:
-        print(currentchar / len(webster), len(concordance), len(deduplist), concordance[-1][0])
-concordance.sort()
+    if currentchar % 100000 == 0:
+        print(currentchar / len(webster), len(concordance), concordance[-1])
 with open('index.txt', 'wt') as out:
     out.write(str(concordance))
