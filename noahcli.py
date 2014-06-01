@@ -20,6 +20,7 @@ def lookup(query):
 
 def randomword():
     r = randint(0, len(index))
+    history.append(index[r][1])
     return(webster[index[r][0]:index[r + 1][0]])
 
 def menu(command):
@@ -38,7 +39,7 @@ def menu(command):
         print(randomword())
         menu('?')
     elif command in 'hH':
-        print(history)
+        viewhistory()
         menu('?')
     elif command in 'cC':
         history = []
@@ -57,6 +58,19 @@ def lookupmode():
         definition = lookup(q)
         print(definition)
         q = input('Enter a word to look up: ')
+    menu('?')
+
+def viewhistory():
+    global history
+    displayed = 15
+    reverseorderindex = -1
+    while displayed > 0:
+        if reverseorderindex * -1 > len(history):
+            break
+        else:
+            print(reverseorderindex * -1, '\t' + history[reverseorderindex])
+            reverseorderindex -= 1
+            displayed -= 1
     menu('?')
 
 print('Enter "?" for a menu')
