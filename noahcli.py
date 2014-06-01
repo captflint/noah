@@ -71,6 +71,10 @@ def viewhistory():
             print(reverseorderindex * -1, '\t' + history[reverseorderindex])
             reverseorderindex -= 1
             displayed -= 1
+        if displayed == 0:
+            c = input('"M" for more history, anything else to go back to the menu')
+            if c in 'mM':
+                displayed = 15
     menu('?')
 
 print('Enter "?" for a menu')
