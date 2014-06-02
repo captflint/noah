@@ -72,10 +72,23 @@ def viewhistory():
             reverseorderindex -= 1
             displayed -= 1
         if displayed == 0:
-            c = input('"M" for more history, anything else to go back to the menu')
-            if c in 'mM':
+            c = input('"M" for more history, anything else to continue')
+            if c in 'mM' and len(c) > 0:
                 displayed = 15
-    menu('?')
+    c = input('Look up number or go to menu')
+    cisnumber = True
+    for char in c:
+        if char in '1234567890':
+            continue
+        else:
+            cisnumber = False
+            break
+    if len(c) > 0 and cisnumber and 0 <= int(c) <= len(history):
+        c = int(c)
+        print(lookup(history[c * -1]))
+        lookupmode()
+    else:
+        menu('?')
 
 print('Enter "?" for a menu')
 lookupmode()

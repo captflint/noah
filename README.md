@@ -13,3 +13,4 @@ As stated above, noah is still in a very early state and not much has been writt
 * The ability to look up a word in a users clipboard by clicking on the system tray icon
 * An ncurses interface for command line junkies
 * Look up history
+* Word bookmarking
