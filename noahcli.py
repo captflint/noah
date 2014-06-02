@@ -2,6 +2,7 @@ import lzma
 import pickle
 from random import randint
 from index import index
+from doubleentries import doubleentries
 with lzma.open('webster.txt.xz', 'rt') as infile:
     webster = infile.read()
 try:
@@ -12,16 +13,19 @@ except FileNotFoundError:
 
 def lookup(query):
     query = query.upper()
-    history.append(query)
     for current in range(0, len(index)):
         if query == index[current][1]:
+            history.append(query)
             return(webster[index[current][0]:index[current + 1][0]])
+    for tup in doubleentries:
+        for word in tup[1]:
+            if query == word:
+                return(lookup(tup[0]))
     return('Word not found')
 
 def randomword():
     r = randint(0, len(index))
-    history.append(index[r][1])
-    return(webster[index[r][0]:index[r + 1][0]])
+    return(lookup(index[r][1]))
 
 def menu(command):
     global history
