@@ -39,8 +39,10 @@ twenty nine
 thirty
 """)
 screen.getch()
+height = screen.getmaxyx()[0]
 
 curses.nocbreak()
 screen.keypad(False)
 curses.echo()
 curses.endwin()
+print(height)
