@@ -4,10 +4,18 @@ screen = curses.initscr()
 curses.noecho()
 curses.cbreak()
 screen.keypad(True)
+screen.refresh()
 
-screen.getch()
-screen.scrollok(True)
-screen.addstr("""one
+def scrollythingy(shitTonOfText):
+    screen.clear()
+    height = screen.getmaxyx()[0]
+    command = 0
+    while chr(command) not in 'Qq':
+        screen.addstr(str(command))
+        command = screen.getch()
+        screen.clear()
+
+longstring = """one
 two
 three
 four
@@ -37,12 +45,10 @@ twenty seven
 twenty eight
 twenty nine
 thirty
-""")
-screen.getch()
-height = screen.getmaxyx()[0]
+"""
+scrollythingy('blahblahblah')
 
 curses.nocbreak()
 screen.keypad(False)
 curses.echo()
 curses.endwin()
-print(height)
