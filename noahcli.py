@@ -1,5 +1,6 @@
 import lzma
 import pickle
+import curses
 from random import randint
 from index import index
 from doubleentries import doubleentries
@@ -10,6 +11,43 @@ try:
         history = pickle.load(infile)
 except FileNotFoundError:
     history = []
+
+# initialize terminal screen
+screen = curses.initscr()
+curses.noecho()
+curses.cbreak()
+screen.keypad(True)
+screen.refresh()
+
+def scrollythingy(shitTonOfText):
+    screen.clear()
+    height = screen.getmaxyx()[0]
+    command = 0
+    offset = 0
+    screen.scrollok(True)
+    while chr(command) not in 'Qq':
+        screen.clear()
+        dispStr = ""
+        lineCounter = 0
+        for char in shitTonOfText:
+            if char == "\n":
+                lineCounter += 1
+            if lineCounter >= offset and lineCounter < offset + height:
+                dispStr += char
+        screen.addstr(dispStr)
+        command = screen.getch()
+        if command == 259: #Up arrow key
+            if offset > 0:
+                offset -= 1
+        elif command == 258: #Down arrow key
+            offset += 1
+        elif chr(command) in 'lL':
+            screen.addstr(screen.getmaxyx()[0] - 1, 0, 'Look up word: ')
+            curses.echo()
+            userInput = bytes.decode(screen.getstr(), 'utf-8')
+            curses.noecho()
+            scrollythingy(lookup(userInput))
+            menu()
 
 def lookup(query):
     query = query.upper()
@@ -27,34 +65,26 @@ def randomword():
     r = randint(0, len(index))
     return(lookup(index[r][1]))
 
-def menu(command):
-    global history
-    if command == '?':
-        print('L - Look up a word')
-        print('R - Look up a random word')
-        print('H - View look up history')
-        print('C - Clear look up history')
-        print('Q - Quit the program')
-        print('? - Display this menu')
-        menu(input('Enter a command: '))
-    elif command in 'lL':
-        lookupmode()
-    elif command in 'rR':
-        print(randomword())
-        menu('?')
-    elif command in 'hH':
-        viewhistory()
-        menu('?')
-    elif command in 'cC':
-        history = []
-        print('History cleared')
-        menu('?')
-    elif command in 'qQ':
-        with open('historypickle', 'wb') as outfile:
-            pickle.dump(history, outfile)
+def menu():
+    screen.clear()
+    screen.addstr("'L' to look up a word\n")
+    screen.addstr("'Q' to quit")
+    command = screen.getch()
+    if chr(command) in 'lL':
+        screen.addstr(screen.getmaxyx()[0] - 1, 0, 'Look up word: ')
+        curses.echo()
+        userInput = bytes.decode(screen.getstr(), 'utf-8')
+        curses.noecho()
+        scrollythingy(lookup(userInput))
+        menu()
+    elif chr(command) in 'qQ':
+        curses.nocbreak()
+        screen.keypad(False)
+        curses.echo()
+        curses.endwin()
         quit()
     else:
-        menu('?')
+        menu()
 
 def lookupmode():
     q = input('Enter a word to look up: ')
@@ -94,5 +124,4 @@ def viewhistory():
     else:
         menu('?')
 
-print('Enter "?" for a menu')
-lookupmode()
+menu()
