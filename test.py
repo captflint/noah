@@ -6,71 +6,33 @@ curses.cbreak()
 screen.keypad(True)
 screen.refresh()
 
-def scrollythingy(shitTonOfText):
-    screen.clear()
-    height = screen.getmaxyx()[0]
-    command = 0
-    offset = 0
-    screen.scrollok(True)
-    while chr(command) not in 'Qq':
-        screen.clear()
-        dispStr = ""
-        lineCounter = 0
-        for char in shitTonOfText:
-            if char == "\n":
-                lineCounter += 1
-            if lineCounter >= offset and lineCounter < offset + height:
-                dispStr += char
-        screen.addstr(dispStr)
-        command = screen.getch()
-        if command == 259: #Up arrow key
-            if offset > 0:
-                offset -= 1
-        elif command == 258: #Down arrow key
-            offset += 1
-
-longstring = """one
-two
-three
-four
-five
-six
-seven
-eight
-nine
-ten
-eleven
-twelve
-thirteen
-fourteen
-fifteen
-sixteen
-seventeen
-eighteen
-nineteen
-twenty
-twenty one
-twenty two
-twenty three
-twenty four
-twenty five
-twenty six
-twenty seven
-twenty eight
-twenty nine
-thirty
-"""
-scrollythingy(longstring)
-scrollythingy('blah')
-scrollythingy('blah\nblah\nblah')
-screen.clear()
-screen.addstr(screen.getmaxyx()[0] - 1, 0, "Input: ")
-curses.echo()
-userInput = screen.getstr()
-curses.noecho()
-screen.clear()
-screen.addstr(userInput)
-screen.getch()
+height = screen.getmaxyx()[0] - 1
+width = screen.getmaxyx()[1] - 1
+position = [0, 0]
+command = 0
+while chr(command) not in 'qQ':
+    command = screen.getch()
+    if chr(command) in 'wW':
+        if position[0] == 0:
+            curses.flash()
+        else:
+            position[0] -= 1
+    elif chr(command) in 'aA':
+        if position[1] == 0:
+            curses.flash()
+        else:
+            position[1] -= 1
+    elif chr(command) in 'sS':
+        if position[0] == height:
+            curses.flash()
+        else:
+            position[0] += 1
+    elif chr(command) in 'dD':
+        if position[1] == width:
+            curses.flash()
+        else:
+            position[1] += 1
+    screen.move(position[0], position[1])
 
 curses.nocbreak()
 screen.keypad(False)
