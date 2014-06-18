@@ -36,10 +36,10 @@ def scrollythingy(shitTonOfText):
                 dispStr += char
         screen.addstr(dispStr)
         command = screen.getch()
-        if command == 259: #Up arrow key
+        if chr(command) in 'Ww':
             if offset > 0:
                 offset -= 1
-        elif command == 258: #Down arrow key
+        elif chr(command) in 'Ss':
             offset += 1
         elif chr(command) in 'lL':
             screen.addstr(screen.getmaxyx()[0] - 1, 0, 'Look up word: ')
@@ -47,7 +47,7 @@ def scrollythingy(shitTonOfText):
             userInput = bytes.decode(screen.getstr(), 'utf-8')
             curses.noecho()
             scrollythingy(lookup(userInput))
-            menu()
+    menu()
 
 def lookup(query):
     query = query.upper()
@@ -68,7 +68,10 @@ def randomword():
 def menu():
     screen.clear()
     screen.addstr("'L' to look up a word\n")
-    screen.addstr("'Q' to quit")
+    screen.addstr("'Q' to quit\n")
+    screen.addstr("'R' to look up a random word\n")
+    screen.addstr("'H' to look at history\n")
+    screen.addstr("Use 'W', 'A', 'S', and 'D' to navigate")
     command = screen.getch()
     if chr(command) in 'lL':
         screen.addstr(screen.getmaxyx()[0] - 1, 0, 'Look up word: ')
@@ -83,6 +86,8 @@ def menu():
         curses.echo()
         curses.endwin()
         quit()
+    elif chr(command) in 'hH':
+        scrollythingy(lookup(viewhistory()))
     else:
         menu()
 
@@ -96,32 +101,40 @@ def lookupmode():
 
 def viewhistory():
     global history
-    displayed = 15
+    displayed = 0
     reverseorderindex = -1
-    while displayed > 0:
-        if reverseorderindex * -1 > len(history):
-            break
-        else:
-            print(reverseorderindex * -1, '\t' + history[reverseorderindex])
+    height = screen.getmaxyx()[0]
+    remember = 0
+    while remember == 0:
+        screen.clear()
+        while displayed != height:
+            screen.addstr(history[reverseorderindex])
+            displayed += 1
             reverseorderindex -= 1
-            displayed -= 1
-        if displayed == 0:
-            c = input('"M" for more history, anything else to continue')
-            if c in 'mM' and len(c) > 0:
-                displayed = 15
-    c = input('Look up number or go to menu')
-    cisnumber = True
-    for char in c:
-        if char in '1234567890':
-            continue
-        else:
-            cisnumber = False
-            break
-    if len(c) > 0 and cisnumber and 0 <= int(c) <= len(history):
-        c = int(c)
-        print(lookup(history[c * -1]))
-        lookupmode()
-    else:
-        menu('?')
+            if displayed != height:
+                screen.addstr('\n')
+            if reverseorderindex * -1 == len(history):
+                break
+        position = 0
+        screen.move(position, 0)
+        while position < height and -1 < position:
+            screen.move(position, 0)
+            command = chr(screen.getch())
+            if command in 'wW':
+                position -= 1
+            elif command in 'sS':
+                position += 1
+            elif command in 'lL':
+                remember = history[reverseorderindex + (height - screen.getyx()[0])]
+                return(remember)
+        if position == height:
+            reverseorderindex -= height - 3
+            if reverseorderindex * -1 >= len(history) + height:
+                reverseorderindex = -1
+        elif position == -1:
+            reverseorderindex += height - 3
+            if reverseorderindex >= 0:
+                reverseorderindex = -1
+        displayed = 0
 
 menu()
