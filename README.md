@@ -8,8 +8,8 @@ As stated above, noah is still in a very early state and not much has been writt
 
 ## Dependancies
 
-Python3
-PyEnchant
+* Python3
+* PyEnchant
 
 ## Planned Features
 
