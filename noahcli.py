@@ -1,7 +1,7 @@
 import lzma
 import pickle
 import curses
-from random import randint
+import random
 from index import index
 from doubleentries import doubleentries
 with lzma.open('webster.txt.xz', 'rt') as infile:
@@ -56,10 +56,6 @@ def lookup(query):
                 return(lookup(tup[0]))
     return('Word not found')
 
-def randomword():
-    r = randint(0, len(index))
-    return(lookup(index[r][1]))
-
 def menu():
     screen.clear()
     screen.addstr("'L' to look up a word\n")
@@ -80,20 +76,16 @@ def menu():
         screen.keypad(False)
         curses.echo()
         curses.endwin()
+        with open('historypickle', 'wb') as outfile:
+            pickle.dump(history.history, outfile)
         quit()
     elif chr(command) in 'hH':
         history.viewHistory()
         menu()
+    elif chr(command) in 'rR':
+        scrollythingy(lookup(random.choice(index)[1]))
     else:
         menu()
-
-def lookupmode():
-    q = input('Enter a word to look up: ')
-    while q != '?':
-        definition = lookup(q)
-        print(definition)
-        q = input('Enter a word to look up: ')
-    menu('?')
 
 class History:
     def __init__(self):
