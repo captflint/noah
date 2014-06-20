@@ -6,11 +6,6 @@ from index import index
 from doubleentries import doubleentries
 with lzma.open('webster.txt.xz', 'rt') as infile:
     webster = infile.read()
-try:
-    with open('historypickle', 'rb') as infile:
-        history = pickle.load(infile)
-except FileNotFoundError:
-    history = []
 
 # initialize terminal screen
 screen = curses.initscr()
@@ -53,7 +48,7 @@ def lookup(query):
     query = query.upper()
     for current in range(0, len(index)):
         if query == index[current][1]:
-            history.append(query)
+            history.history.append(query)
             return(webster[index[current][0]:index[current + 1][0]])
     for tup in doubleentries:
         for word in tup[1]:
@@ -87,7 +82,8 @@ def menu():
         curses.endwin()
         quit()
     elif chr(command) in 'hH':
-        scrollythingy(lookup(viewhistory()))
+        history.viewHistory()
+        menu()
     else:
         menu()
 
@@ -99,42 +95,31 @@ def lookupmode():
         q = input('Enter a word to look up: ')
     menu('?')
 
-def viewhistory():
-    global history
-    displayed = 0
-    reverseorderindex = -1
-    height = screen.getmaxyx()[0]
-    remember = 0
-    while remember == 0:
-        screen.clear()
-        while displayed != height:
-            screen.addstr(history[reverseorderindex])
-            displayed += 1
-            reverseorderindex -= 1
-            if displayed != height:
-                screen.addstr('\n')
-            if reverseorderindex * -1 == len(history):
-                break
-        position = 0
-        screen.move(position, 0)
-        while position < height and -1 < position:
-            screen.move(position, 0)
-            command = chr(screen.getch())
-            if command in 'wW':
-                position -= 1
-            elif command in 'sS':
-                position += 1
-            elif command in 'lL':
-                remember = history[reverseorderindex + (height - screen.getyx()[0])]
-                return(remember)
-        if position == height:
-            reverseorderindex -= height - 3
-            if reverseorderindex * -1 >= len(history) + height:
-                reverseorderindex = -1
-        elif position == -1:
-            reverseorderindex += height - 3
-            if reverseorderindex >= 0:
-                reverseorderindex = -1
-        displayed = 0
+class History:
+    def __init__(self):
+        try:
+            with open('historypickle', 'rb') as infile:
+                self.history = pickle.load(infile)
+        except FileNotFoundError:
+            self.history = []
+        self.positionList = []
 
+    def writeToScreen(self, offset):
+        height = screen.getmaxyx()[0]
+        self.positionList = []
+        screen.clear()
+        for item in self.rlist[offset:offset + height]:
+            screen.addstr(item)
+            self.positionList.append((screen.getyx()[0], item))
+            if screen.getyx()[0] != height -1:
+                screen.addstr('\n')
+
+    def viewHistory(self):
+        self.rlist = []
+        for word in reversed(self.history):
+            self.rlist.append(word)
+        self.writeToScreen(0)
+        screen.getch()
+
+history = History()
 menu()
