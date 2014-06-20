@@ -2,10 +2,12 @@ import lzma
 import pickle
 import curses
 import random
+import enchant
 from index import index
 from doubleentries import doubleentries
 with lzma.open('webster.txt.xz', 'rt') as infile:
     webster = infile.read()
+wordlist = enchant.request_pwl_dict('wordlist.txt')
 
 # initialize terminal screen
 screen = curses.initscr()
@@ -37,6 +39,7 @@ def scrollythingy(shitTonOfText):
         elif chr(command) in 'Ss':
             offset += 1
         elif chr(command) in 'lL':
+            screen.clear()
             screen.addstr(screen.getmaxyx()[0] - 1, 0, 'Look up word: ')
             curses.echo()
             userInput = bytes.decode(screen.getstr(), 'utf-8')
@@ -54,7 +57,8 @@ def lookup(query):
         for word in tup[1]:
             if query == word:
                 return(lookup(tup[0]))
-    return('Word not found')
+    spellcheck = Spellcheck(query)
+    spellcheck.view()
 
 def menu():
     screen.clear()
@@ -62,7 +66,7 @@ def menu():
     screen.addstr("'Q' to quit\n")
     screen.addstr("'R' to look up a random word\n")
     screen.addstr("'H' to look at history\n")
-    screen.addstr("Use 'W', 'A', 'S', and 'D' to navigate")
+    screen.addstr("Use 'W' and 'A' to navigate")
     command = screen.getch()
     if chr(command) in 'lL':
         screen.addstr(screen.getmaxyx()[0] - 1, 0, 'Look up word: ')
@@ -85,6 +89,62 @@ def menu():
     elif chr(command) in 'rR':
         scrollythingy(lookup(random.choice(index)[1]))
     else:
+        menu()
+
+class Spellcheck:
+    def __init__(self, word):
+        global wordlist
+        self.suggestions = wordlist.suggest(word)
+        if len(self.suggestions) == 0:
+            screen.clear()
+            screen.addstr("Word not found")
+            screen.getch()
+            menu()
+        self.suggestions = ['Word not found.  Did you mean:'] + self.suggestions
+
+    def writeToScreen(self, offset):
+        height = screen.getmaxyx()[0]
+        self.positionList = []
+        if offset < 0:
+            begin = 0
+        else:
+            begin = offset
+        if begin + height > len(self.suggestions):
+            end = len(self.suggestions)
+        else:
+            end = begin + height
+        screen.clear()
+        for item in self.suggestions[begin:end]:
+            screen.addstr(item)
+            self.positionList.append((screen.getyx()[0], item))
+            if screen.getyx()[0] != height -1:
+                screen.addstr('\n')
+
+    def view(self):
+        offset = 0
+        self.writeToScreen(offset)
+        screen.move(0, 0)
+        command = chr(screen.getch())
+        position = 0
+        while command not in 'qQ':
+            if command in 'lL':
+                for pair in self.positionList:
+                    if position == pair[0]:
+                        scrollythingy(lookup(pair[1]))
+            elif command in 'wW':
+                position -= 1
+            elif command in 'sS':
+                position += 1
+            if position < 0:
+                position = 0
+                offset -= 1
+                self.writeToScreen(offset)
+            elif position >= screen.getmaxyx()[0]:
+                position = screen.getmaxyx()[0] - 1
+                offset += 1
+                self.writeToScreen(offset)
+            screen.move(position, 0)
+            command = chr(screen.getch())
         menu()
 
 class History:
