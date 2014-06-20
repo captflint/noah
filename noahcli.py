@@ -107,8 +107,16 @@ class History:
     def writeToScreen(self, offset):
         height = screen.getmaxyx()[0]
         self.positionList = []
+        if offset < 0:
+            begin = 0
+        else:
+            begin = offset
+        if begin + height > len(self.rlist):
+            end = len(self.rlist)
+        else:
+            end = begin + height
         screen.clear()
-        for item in self.rlist[offset:offset + height]:
+        for item in self.rlist[begin:end]:
             screen.addstr(item)
             self.positionList.append((screen.getyx()[0], item))
             if screen.getyx()[0] != height -1:
@@ -118,8 +126,30 @@ class History:
         self.rlist = []
         for word in reversed(self.history):
             self.rlist.append(word)
-        self.writeToScreen(0)
-        screen.getch()
+        offset = 0
+        self.writeToScreen(offset)
+        screen.move(0, 0)
+        command = chr(screen.getch())
+        position = 0
+        while command not in 'qQ':
+            if command in 'lL':
+                for pair in self.positionList:
+                    if position == pair[0]:
+                        scrollythingy(lookup(pair[1]))
+            elif command in 'wW':
+                position -= 1
+            elif command in 'sS':
+                position += 1
+            if position < 0:
+                position = 0
+                offset -= 1
+                self.writeToScreen(offset)
+            elif position >= screen.getmaxyx()[0]:
+                position = screen.getmaxyx()[0] - 1
+                offset += 1
+                self.writeToScreen(offset)
+            screen.move(position, 0)
+            command = chr(screen.getch())
 
 history = History()
 menu()
