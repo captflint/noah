@@ -97,10 +97,10 @@ class Spellcheck:
         self.suggestions = wordlist.suggest(word)
         if len(self.suggestions) == 0:
             screen.clear()
-            screen.addstr("Word not found")
+            screen.addstr(word + " not found")
             screen.getch()
             menu()
-        self.suggestions = ['Word not found.  Did you mean:'] + self.suggestions
+        self.suggestions = [word + ' not found.  Did you mean:'] + self.suggestions
 
     def writeToScreen(self, offset):
         height = screen.getmaxyx()[0]
