@@ -16,7 +16,7 @@ curses.cbreak()
 screen.keypad(True)
 screen.refresh()
 
-def scrollythingy(shitTonOfText):
+def display(textchunk):
     screen.clear()
     height = screen.getmaxyx()[0]
     command = 0
@@ -26,7 +26,7 @@ def scrollythingy(shitTonOfText):
         screen.clear()
         dispStr = ""
         lineCounter = 0
-        for char in shitTonOfText:
+        for char in textchunk:
             if char == "\n":
                 lineCounter += 1
             if lineCounter >= offset and lineCounter < offset + height:
@@ -44,7 +44,7 @@ def scrollythingy(shitTonOfText):
             curses.echo()
             userInput = bytes.decode(screen.getstr(), 'utf-8')
             curses.noecho()
-            scrollythingy(lookup(userInput))
+            display(lookup(userInput))
     menu()
 
 def lookup(query):
@@ -73,7 +73,7 @@ def menu():
         curses.echo()
         userInput = bytes.decode(screen.getstr(), 'utf-8')
         curses.noecho()
-        scrollythingy(lookup(userInput))
+        display(lookup(userInput))
         menu()
     elif chr(command) in 'qQ':
         curses.nocbreak()
@@ -87,7 +87,7 @@ def menu():
         history.viewHistory()
         menu()
     elif chr(command) in 'rR':
-        scrollythingy(lookup(random.choice(index)[1]))
+        display(lookup(random.choice(index)[1]))
     else:
         menu()
 
@@ -130,7 +130,7 @@ class Spellcheck:
             if command in 'lL':
                 for pair in self.positionList:
                     if position == pair[0]:
-                        scrollythingy(lookup(pair[1]))
+                        display(lookup(pair[1]))
             elif command in 'wW':
                 position -= 1
             elif command in 'sS':
@@ -187,7 +187,7 @@ class History:
             if command in 'lL':
                 for pair in self.positionList:
                     if position == pair[0]:
-                        scrollythingy(lookup(pair[1]))
+                        display(lookup(pair[1]))
             elif command in 'wW':
                 position -= 1
             elif command in 'sS':
